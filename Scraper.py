@@ -37,6 +37,12 @@ def build_master_database():
         
         if not name_match or not id_match: continue
         
+        name_str = name_match.group(1)
+        
+        # BUGFIX: Ignore empty names or 'nan'
+        if not name_str or name_str.lower() == "nan": 
+            continue
+            
         item_id = int(id_match.group(1))
         if item_id in seen_ids:
             continue
@@ -71,7 +77,7 @@ def build_master_database():
         
         master_db.append({
             "id": item_id,
-            "name": name_match.group(1),
+            "name": name_str,
             "rarity": rarity_match.group(1) if rarity_match else "Normal",
             "is_pet": is_pet,
             "values": values_matrix,

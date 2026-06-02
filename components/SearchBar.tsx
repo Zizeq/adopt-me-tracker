@@ -94,6 +94,10 @@ function DbResultCard({
   const [isR, setIsR] = useState(false);
   const [amt, setAmt] = useState<number>(1);
 
+  // Animation states
+  const [addedPack, setAddedPack] = useState(false);
+  const [addedWish, setAddedWish] = useState(false);
+
   let potionKey: "NoPot" | "R" | "F" | "FR" = "NoPot";
   if (isF && isR) potionKey = "FR";
   else if (isF) potionKey = "F";
@@ -110,6 +114,18 @@ function DbResultCard({
     value: currentValue,
   };
 
+  const handleAddPack = () => {
+    onAddInventory(itemToPass, "pack");
+    setAddedPack(true);
+    setTimeout(() => setAddedPack(false), 1000);
+  };
+
+  const handleAddWish = () => {
+    onAddInventory(itemToPass, "wish");
+    setAddedWish(true);
+    setTimeout(() => setAddedWish(false), 1000);
+  };
+
   return (
     <div className="bg-white rounded-[20px] p-4 text-center shadow-sm relative border border-stone-100 flex flex-col items-center">
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -122,7 +138,10 @@ function DbResultCard({
             "https://placehold.co/100x100/333/FFF?text=Pet";
         }}
       />
-      <div className="text-[14px] font-black text-[#333] truncate w-full">
+      <div
+        className="text-[14px] font-black text-[#333] truncate w-full"
+        title={pet.name}
+      >
         {pet.name}
       </div>
       <div className="text-[18px] font-black text-[#333]">
@@ -174,8 +193,11 @@ function DbResultCard({
         <input
           type="number"
           min="1"
+          max="100"
           value={amt}
-          onChange={(e) => setAmt(Math.max(1, parseInt(e.target.value) || 1))}
+          onChange={(e) =>
+            setAmt(Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))
+          }
           className="w-12 text-center bg-transparent text-[14px] font-black text-[#333] outline-none"
         />
       </div>
@@ -183,30 +205,30 @@ function DbResultCard({
       <div className="flex gap-1.5 w-full mt-auto pt-2">
         <button
           onClick={() => onAddOffer(itemToPass, "mine")}
-          className="flex-1 py-2 rounded-[10px] text-[13px] font-black bg-[#e2f0e6] text-[#2d8647] hover:brightness-95"
+          className="flex-1 py-2 rounded-[10px] text-[13px] font-black bg-[#e2f0e6] text-[#2d8647] hover:brightness-95 transition-all"
         >
           Your Offer
         </button>
         <button
           onClick={() => onAddOffer(itemToPass, "theirs")}
-          className="flex-1 py-2 rounded-[10px] text-[13px] font-black bg-[#fce4e4] text-[#c9302c] hover:brightness-95"
+          className="flex-1 py-2 rounded-[10px] text-[13px] font-black bg-[#fce4e4] text-[#c9302c] hover:brightness-95 transition-all"
         >
           Their Offer
         </button>
       </div>
       <div className="flex gap-1.5 w-full mt-1.5">
         <button
-          onClick={() => onAddInventory(itemToPass, "pack")}
-          className="flex-1 py-1.5 rounded-[10px] text-[13px] font-black bg-[#f0f0f0] text-[#555] hover:brightness-95"
+          onClick={handleAddPack}
+          className={`flex-1 py-1.5 rounded-[10px] text-[13px] font-black transition-all ${addedPack ? "bg-[#85d67a] text-white" : "bg-[#f0f0f0] text-[#555] hover:brightness-95"}`}
         >
-          + Backpack
+          {addedPack ? "Added! ✓" : "+ Backpack"}
         </button>
         <button
-          onClick={() => onAddInventory(itemToPass, "wish")}
-          className="px-3 py-1.5 rounded-[10px] text-[13px] font-black bg-[#fff3cd] text-[#856404] hover:brightness-95"
+          onClick={handleAddWish}
+          className={`px-3 py-1.5 rounded-[10px] text-[13px] font-black transition-all ${addedWish ? "bg-[#ffdf70] text-black" : "bg-[#fff3cd] text-[#856404] hover:brightness-95"}`}
           title="Add to Wishlist"
         >
-          ⭐
+          {addedWish ? "✓" : "⭐"}
         </button>
       </div>
     </div>
@@ -254,7 +276,10 @@ function InventoryCard({
             "https://placehold.co/100x100/333/FFF?text=Pet";
         }}
       />
-      <div className="text-[14px] font-black text-[#333] mt-2 truncate w-full">
+      <div
+        className="text-[14px] font-black text-[#333] mt-2 truncate w-full"
+        title={prefix + item.name}
+      >
         {prefix}
         {item.name}
       </div>
@@ -292,13 +317,13 @@ function InventoryCard({
         <div className="flex gap-1.5 w-full mt-auto pt-3">
           <button
             onClick={() => onAddOffer({ ...item, qty: amtToMove }, "mine")}
-            className="flex-1 py-1.5 rounded-[10px] text-[13px] font-black bg-[#e2f0e6] text-[#2d8647] hover:brightness-95"
+            className="flex-1 py-1.5 rounded-[10px] text-[13px] font-black bg-[#e2f0e6] text-[#2d8647] hover:brightness-95 transition-all"
           >
             Your Offer
           </button>
           <button
             onClick={() => onAddOffer({ ...item, qty: amtToMove }, "theirs")}
-            className="flex-1 py-1.5 rounded-[10px] text-[13px] font-black bg-[#fce4e4] text-[#c9302c] hover:brightness-95"
+            className="flex-1 py-1.5 rounded-[10px] text-[13px] font-black bg-[#fce4e4] text-[#c9302c] hover:brightness-95 transition-all"
           >
             Their Offer
           </button>
@@ -491,6 +516,14 @@ export default function SearchBar({
   const [filter, setFilter] = useState<"all" | "pets">("all");
   const [rarityFilter, setRarityFilter] = useState<string>("all");
   const [sortMode, setSortMode] = useState<"high" | "low">("high");
+
+  // Value Range & Pagination states
+  const [minVal, setMinVal] = useState("");
+  const [maxVal, setMaxVal] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const ITEMS_PER_PAGE = 50;
+
   const [activeTab, setActiveTab] = useState<
     "db" | "pack" | "wish" | "hist" | "global"
   >("db");
@@ -510,8 +543,28 @@ export default function SearchBar({
 
       if (rarityFilter !== "all") {
         filtered = filtered.filter(
-          (pet) => pet.rarity.toLowerCase() === rarityFilter.toLowerCase(),
+          (pet) =>
+            pet.rarity.toLowerCase().replace(/[^a-z]/g, "") ===
+            rarityFilter.toLowerCase().replace(/[^a-z]/g, ""),
         );
+      }
+
+      if (minVal !== "") {
+        const min = parseFloat(minVal);
+        if (!isNaN(min)) {
+          filtered = filtered.filter(
+            (pet) => (pet.values?.Reg?.NoPot || 0) >= min,
+          );
+        }
+      }
+
+      if (maxVal !== "") {
+        const max = parseFloat(maxVal);
+        if (!isNaN(max)) {
+          filtered = filtered.filter(
+            (pet) => (pet.values?.Reg?.NoPot || 0) <= max,
+          );
+        }
       }
 
       filtered.sort((a, b) => {
@@ -520,10 +573,23 @@ export default function SearchBar({
         return sortMode === "high" ? valB - valA : valA - valB;
       });
 
-      setResults(filtered.slice(0, 50));
+      const total = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+      setTotalPages(total);
+
+      const safePage = Math.min(currentPage, total);
+      if (safePage !== currentPage) {
+        setCurrentPage(safePage);
+      }
+
+      setResults(
+        filtered.slice(
+          (safePage - 1) * ITEMS_PER_PAGE,
+          safePage * ITEMS_PER_PAGE,
+        ),
+      );
     }, 300);
     return () => clearTimeout(timeoutId);
-  }, [query, filter, rarityFilter, sortMode]);
+  }, [query, filter, rarityFilter, sortMode, minVal, maxVal, currentPage]);
 
   const getTabClass = (tabId: string) => {
     const base =
@@ -594,6 +660,7 @@ export default function SearchBar({
   ) => {
     setActiveTab(tabId);
     setQuery("");
+    setCurrentPage(1);
     if (tabId === "global") {
       onRefreshGlobal();
     }
@@ -635,24 +702,50 @@ export default function SearchBar({
 
         <div className="w-[2px] h-[25px] bg-[#eee] mx-[5px] hidden md:block"></div>
 
-        {/* 🚀 Problem 3 Solved: Search Bar input text block remains permanently available across all tab selections */}
         <input
           type="text"
           placeholder={
             activeTab === "hist" || activeTab === "global"
               ? "Search feed text..."
-              : "Search..."
+              : "Search pets..."
           }
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setCurrentPage(1);
+          }} // Updated
           className="flex-1 px-[10px] py-[12px] rounded-[30px] border-none text-[15px] bg-transparent outline-none min-w-[150px] font-bold"
         />
 
         {activeTab !== "hist" && activeTab !== "global" && (
           <>
+            <input
+              type="number"
+              placeholder="Min Val"
+              value={minVal}
+              onChange={(e) => {
+                setMinVal(e.target.value);
+                setCurrentPage(1);
+              }} // Updated
+              className="w-[90px] px-[15px] py-[10px] rounded-[20px] border-2 border-[#eee] bg-white font-bold outline-none text-[14px]"
+            />
+            <input
+              type="number"
+              placeholder="Max Val"
+              value={maxVal}
+              onChange={(e) => {
+                setMaxVal(e.target.value);
+                setCurrentPage(1);
+              }} // Updated
+              className="w-[90px] px-[15px] py-[10px] rounded-[20px] border-2 border-[#eee] bg-white font-bold outline-none text-[14px]"
+            />
+
             <select
               value={filter}
-              onChange={(e) => setFilter(e.target.value as "all" | "pets")}
+              onChange={(e) => {
+                setFilter(e.target.value as "all" | "pets");
+                setCurrentPage(1);
+              }} // Updated
               className="px-[15px] py-[10px] rounded-[20px] border-2 border-[#eee] bg-white font-bold outline-none cursor-pointer text-[14px]"
             >
               <option value="all">All Items</option>
@@ -661,7 +754,10 @@ export default function SearchBar({
 
             <select
               value={rarityFilter}
-              onChange={(e) => setRarityFilter(e.target.value)}
+              onChange={(e) => {
+                setRarityFilter(e.target.value);
+                setCurrentPage(1);
+              }} // Updated
               className="px-[15px] py-[10px] rounded-[20px] border-2 border-[#eee] bg-white font-bold outline-none cursor-pointer text-[14px]"
             >
               <option value="all">All Rarities</option>
@@ -674,7 +770,10 @@ export default function SearchBar({
 
             <select
               value={sortMode}
-              onChange={(e) => setSortMode(e.target.value as "high" | "low")}
+              onChange={(e) => {
+                setSortMode(e.target.value as "high" | "low");
+                setCurrentPage(1);
+              }} // Updated
               className="px-[15px] py-[10px] rounded-[20px] border-2 border-[#eee] bg-white font-bold outline-none cursor-pointer text-[14px]"
             >
               <option value="high">High-Low</option>
@@ -699,16 +798,37 @@ export default function SearchBar({
       )}
 
       {activeTab === "db" && results.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 max-h-[600px] overflow-y-auto pr-2">
-          {results.map((pet) => (
-            <DbResultCard
-              key={pet.id}
-              pet={pet}
-              onAddOffer={onAddOffer}
-              onAddInventory={onAddInventory}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 max-h-[600px] overflow-y-auto pr-2 pb-4">
+            {results.map((pet) => (
+              <DbResultCard
+                key={pet.id}
+                pet={pet}
+                onAddOffer={onAddOffer}
+                onAddInventory={onAddInventory}
+              />
+            ))}
+          </div>
+          <div className="flex justify-center items-center gap-4 mt-6 pt-4 border-t border-black/10 w-full">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-6 py-2 bg-[#333] text-white rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-110 transition-all"
+            >
+              Prev
+            </button>
+            <span className="font-bold text-[#333] text-[15px]">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-6 py-2 bg-[#333] text-white rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-110 transition-all"
+            >
+              Next
+            </button>
+          </div>
+        </>
       )}
 
       {activeTab === "pack" && (

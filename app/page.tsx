@@ -233,8 +233,6 @@ export default function Home() {
       subscription.unsubscribe();
       supabase.removeChannel(globalTradesChannel);
     };
-
-    return () => subscription.unsubscribe();
   }, [syncWithLiveDatabase]);
 
   useEffect(() => {
@@ -342,8 +340,16 @@ export default function Home() {
     if (myOffer.length === 0 && theirOffer.length === 0)
       return alert("Trade is empty!");
 
-    const name = window.prompt("Enter your display name for the public board:");
+    const name = window.prompt(
+      "Enter your display name for the public board (Max 20 chars):",
+    );
     if (!name) return;
+
+    if (name.length > 20) {
+      return alert(
+        "Name is too long! Maximum is 20 characters (Roblox limit).",
+      );
+    }
 
     const mySum = myOffer.reduce((sum, item) => sum + item.value * item.qty, 0);
     const theirSum = theirOffer.reduce(
@@ -476,9 +482,9 @@ export default function Home() {
         }),
       );
 
-      if (prevOffer.length + itemsToAdd.length > 20) {
+      if (prevOffer.length + itemsToAdd.length > 18) {
         alert("Offer grid is full! Cannot add all requested items.");
-        const dynamicSlotsAvailable = 20 - prevOffer.length;
+        const dynamicSlotsAvailable = 18 - prevOffer.length;
         if (dynamicSlotsAvailable <= 0) return prevOffer;
         return [...prevOffer, ...itemsToAdd.slice(0, dynamicSlotsAvailable)];
       }
@@ -487,6 +493,13 @@ export default function Home() {
   };
 
   const handleAddInventory = (item: TradeItem, target: "pack" | "wish") => {
+    if (item.qty > 100) {
+      alert(
+        "System Limit: You can only add up to 100 of an item to your backpack at once.",
+      );
+      return;
+    }
+
     const targetSet = target === "pack" ? setMyBackpack : setMyWishlist;
     targetSet((prev) => {
       const existingIndex = prev.findIndex(
@@ -574,13 +587,16 @@ export default function Home() {
       const key = `${offerItem.id}-${offerItem.variant}-${offerItem.potion}`;
       const totalRequired = totalNeededGiven[key];
 
-      const bpItem = myBackpack.find(
-        (bp) =>
-          Number(bp.id) === Number(offerItem.id) &&
-          bp.variant === offerItem.variant &&
-          bp.potion === offerItem.potion,
-      );
-      if (!bpItem || bpItem.qty < totalRequired) {
+      const totalOwned = myBackpack
+        .filter(
+          (bp) =>
+            Number(bp.id) === Number(offerItem.id) &&
+            bp.variant === offerItem.variant &&
+            bp.potion === offerItem.potion,
+        )
+        .reduce((sum, item) => sum + item.qty, 0);
+
+      if (totalOwned < totalRequired) {
         hasItemExploit = true;
         explicitErrorText = `${totalRequired}x ${offerItem.variant !== "Reg" ? offerItem.variant + " " : ""}${offerItem.potion !== "NoPot" ? offerItem.potion + " " : ""}${offerItem.name}`;
         break;
@@ -603,15 +619,25 @@ export default function Home() {
     setMyBackpack((prev) => {
       let updatedPack = prev.map((item) => ({ ...item }));
 
+      // Safely deduct across split stacks
       (record.rawGiven || []).forEach((offerItem) => {
-        const bpIndex = updatedPack.findIndex(
-          (bp) =>
+        let remaining = offerItem.qty;
+        for (let i = 0; i < updatedPack.length; i++) {
+          const bp = updatedPack[i];
+          if (
             Number(bp.id) === Number(offerItem.id) &&
             bp.variant === offerItem.variant &&
-            bp.potion === offerItem.potion,
-        );
-        if (bpIndex >= 0) {
-          updatedPack[bpIndex].qty -= offerItem.qty;
+            bp.potion === offerItem.potion
+          ) {
+            if (bp.qty >= remaining) {
+              bp.qty -= remaining;
+              remaining = 0;
+              break;
+            } else {
+              remaining -= bp.qty;
+              bp.qty = 0;
+            }
+          }
         }
       });
 
@@ -683,13 +709,16 @@ export default function Home() {
       const key = `${offerItem.id}-${offerItem.variant}-${offerItem.potion}`;
       const totalRequired = totalNeededGiven[key];
 
-      const bpItem = myBackpack.find(
-        (bp) =>
-          Number(bp.id) === Number(offerItem.id) &&
-          bp.variant === offerItem.variant &&
-          bp.potion === offerItem.potion,
-      );
-      if (!bpItem || bpItem.qty < totalRequired) {
+      const totalOwned = myBackpack
+        .filter(
+          (bp) =>
+            Number(bp.id) === Number(offerItem.id) &&
+            bp.variant === offerItem.variant &&
+            bp.potion === offerItem.potion,
+        )
+        .reduce((sum, item) => sum + item.qty, 0);
+
+      if (totalOwned < totalRequired) {
         hasItemExploit = true;
         explicitErrorText = `${totalRequired}x ${offerItem.variant !== "Reg" ? offerItem.variant + " " : ""}${offerItem.potion !== "NoPot" ? offerItem.potion + " " : ""}${offerItem.name}`;
         break;
@@ -712,15 +741,25 @@ export default function Home() {
     setMyBackpack((prev) => {
       let updatedPack = prev.map((item) => ({ ...item }));
 
+      // Safely deduct across split stacks
       (trade.my_offer || []).forEach((offerItem) => {
-        const bpIndex = updatedPack.findIndex(
-          (bp) =>
+        let remaining = offerItem.qty;
+        for (let i = 0; i < updatedPack.length; i++) {
+          const bp = updatedPack[i];
+          if (
             Number(bp.id) === Number(offerItem.id) &&
             bp.variant === offerItem.variant &&
-            bp.potion === offerItem.potion,
-        );
-        if (bpIndex >= 0) {
-          updatedPack[bpIndex].qty -= offerItem.qty;
+            bp.potion === offerItem.potion
+          ) {
+            if (bp.qty >= remaining) {
+              bp.qty -= remaining;
+              remaining = 0;
+              break;
+            } else {
+              remaining -= bp.qty;
+              bp.qty = 0;
+            }
+          }
         }
       });
 

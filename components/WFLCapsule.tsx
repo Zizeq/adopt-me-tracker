@@ -15,15 +15,18 @@ export default function WFLCapsule({ myTotal, theirTotal }: WFLCapsuleProps) {
   const isLose = !isFair && diff > 0;
 
   return (
-    <div className="w-full max-w-[900px] bg-[#ebe6da] rounded-[60px] py-4 px-10 flex items-center justify-between mb-5 shadow-inner">
-      {/* My Score */}
-      <div className="text-[55px] font-black w-[120px] text-center text-[#333] leading-none">
+    <div className="w-full max-w-[900px] bg-[#ebe6da] rounded-[60px] py-4 px-6 md:px-10 flex items-center justify-between mb-5 shadow-inner">
+      {/* My Score - Truncate dynamically replaces the rigid width limit */}
+      <div
+        className="text-[35px] sm:text-[45px] md:text-[55px] font-black w-auto max-w-[120px] sm:max-w-[200px] flex-1 text-center text-[#333] leading-none truncate px-2"
+        title={myTotal.toFixed(2)}
+      >
         {myTotal.toFixed(2)}
       </div>
 
       {/* Center Console */}
-      <div className="flex flex-col items-center flex-1">
-        <div className="bg-black/5 px-5 py-1.5 rounded-full flex gap-5 text-[24px] font-black text-[#cdc6ba] uppercase mb-1">
+      <div className="flex flex-col items-center shrink-0 px-2">
+        <div className="bg-black/5 px-3 md:px-5 py-1.5 rounded-full flex gap-3 md:gap-5 text-[18px] md:text-[24px] font-black text-[#cdc6ba] uppercase mb-1">
           <span className={isWin ? "text-[#85d67a] drop-shadow-sm" : ""}>
             Win
           </span>
@@ -34,7 +37,7 @@ export default function WFLCapsule({ myTotal, theirTotal }: WFLCapsuleProps) {
             Lose
           </span>
         </div>
-        <div className="flex justify-between w-[250px] text-[15px] font-extrabold text-[#a39d91]">
+        <div className="flex justify-between w-full md:w-[250px] text-[12px] md:text-[15px] font-extrabold text-[#a39d91]">
           <span>YOUR OFFER</span>
           <span>|</span>
           <span>THEIR OFFER</span>
@@ -42,7 +45,10 @@ export default function WFLCapsule({ myTotal, theirTotal }: WFLCapsuleProps) {
       </div>
 
       {/* Their Score */}
-      <div className="text-[55px] font-black w-[120px] text-center text-[#333] leading-none">
+      <div
+        className="text-[35px] sm:text-[45px] md:text-[55px] font-black w-auto max-w-[120px] sm:max-w-[200px] flex-1 text-center text-[#333] leading-none truncate px-2"
+        title={theirTotal.toFixed(2)}
+      >
         {theirTotal.toFixed(2)}
       </div>
     </div>
